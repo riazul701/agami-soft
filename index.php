@@ -2,11 +2,45 @@
 <html>
 <head>
 <title>Customer</title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<style>
+.container {
+    margin: 30px auto;
+}
+</style>
 </head>
 <body>
+
+<div class="jumbotron text-center" style="margin-bottom:0">
+  <h1>AgamiSoft Invoice System</h1>
+  <p>Create invoice and pay now or later.</p> 
+</div>
+
+<div class="container">
+
+<div class="row">
+
+<div class="col-sm-12">
+    
 <form method="post" action="index.php" enctype="multipart/form-data">
-<input type="text" name="search_txt" placeholder="Search By Company Name Or Mobile Number">
-<input type="submit" name="search_submit">
+
+<div class="form-group">
+<label for="search_input">Search Customer *</label>
+<input type="text" name="search_txt" class="form-control" id="search_input" placeholder="Search By Company Name Or Mobile Number">
+</div>
+
+<input type="submit" name="search_submit" class="btn btn-primary">
 </form>
 
 <?php
@@ -28,18 +62,19 @@ $result_customer = $conn->query($sql_customer);
 if ($result_customer->num_rows > 0) {
     ?>
 
-<form method="post" action="index.php" enctype="multipart/form-data">
+<form class="form-inline" method="post" action="index.php" enctype="multipart/form-data">
 
     <?php
   while($row_customer = $result_customer->fetch_assoc()) {
     // echo "customerID: " . $row_customer["customerID"] . "<br>";
+    echo "<table class='table table-bordered' style='margin-top: 15px;'><tr><td>{$row_customer['customer_fname']}</td><td>{$row_customer['company_name']}</td><td>{$row_customer['phone']}</td><td>{$row_customer['address']}</td></tr></table>";
 
   //$sql_order = "SELECT orders.*, payments.* FROM orders LEFT JOIN payments ON orders.orderID = payments.orderID WHERE orders.customerID = \"{$row_customer["customerID"]}\"";
   $sql_order = "SELECT * FROM orders WHERE customerID = \"{$row_customer["customerID"]}\"";
   $result_order = $conn->query($sql_order);
   $total_due = 0;
-  echo '<table>';
-        echo '<tr><td>Check</td><td>Date</td><td>Invoice no.</td><td>Total amount</td><td>Paid amount</td><td>Due amount</td></tr>';
+  echo '<table class="table table-striped" style="margin-top: 15px;">';
+        echo '<tr><th>Check</th><th>Date</th><th>Invoice no.</th><th>Total amount</th><th>Paid amount</th><th>Due amount</th></tr>';
   if($result_order->num_rows > 0) {
       while($row_order = $result_order->fetch_assoc()) {
         $due_amount = 0;  
@@ -82,8 +117,11 @@ if ($result_customer->num_rows > 0) {
   ?>
 
 <input type="hidden" name="customer_id" value="<?php echo $row_customer["customerID"]; ?>">
-<input type="text" name="receipt_amount" placeholder="Search By Company Name Or Mobile Number">
-<input type="submit" name="receipt_submit">
+
+<label for="receipt_input" class="mb-2 mr-sm-2"><strong>Receipt Amount:</strong></label>
+<input type="text" name="receipt_amount" id="receipt_input" class="form-control mb-2 mr-sm-2" placeholder="Receipt Amount">
+<input type="submit" name="receipt_submit" class="btn btn-primary mb-2">
+
 </form>
 
   <?php
@@ -153,6 +191,14 @@ $sql_order = "SELECT * FROM orders WHERE customerID = {$customer_id} ORDER BY or
 // $conn->close();
 }
 ?>
+
+</div>
+</div>
+</div>
+
+<div class="jumbotron text-center" style="margin-bottom:0">
+  <p>Copyright 2020 by AgamiSoft. All Rights Reserved.</p>
+</div>
 
 </body>
 </html>
