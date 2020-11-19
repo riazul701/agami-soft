@@ -78,11 +78,6 @@ if ($result_customer->num_rows > 0) {
   if($result_order->num_rows > 0) {
       while($row_order = $result_order->fetch_assoc()) {
         $due_amount = 0;  
-        echo '<tr>';
-        echo '<td>' . "<input type='checkbox'>" . '</td>';
-        echo '<td>' . $row_order['date'] . '</td>';
-        echo '<td>' . $row_order['invoice_no'] . '</td>';
-        echo '<td>' . $row_order['grand_total'] . '</td>';
         $result_payment = $conn->query("SELECT SUM(paid_amount) AS paid_amount FROM payments WHERE orderID = \"{$row_order['orderID']}\"");
         if($result_payment->num_rows > 0) {
             while($row_payment = $result_payment->fetch_assoc()) {
@@ -94,10 +89,18 @@ if ($result_customer->num_rows > 0) {
         if($paid_amount === NULL) {
             $paid_amount = 0;
         }
+        $due_amount = $row_order['grand_total'] - $paid_amount;
+
+        echo '<tr>';
+        echo '<td>' . "<input type=\"checkbox\" name=\"order_choose[{$row_order['orderID']}]\" class=\"order_select\" value=\"{$due_amount}\">" . '</td>';
+        echo '<td>' . $row_order['date'] . '</td>';
+        echo '<td>' . $row_order['invoice_no'] . '</td>';
+        echo '<td>' . $row_order['grand_total'] . '</td>';
+        
         
         echo '<td>' . $paid_amount . '</td>';
-        echo '<td>' . ($row_order['grand_total'] - $paid_amount) . '</td>';
-        $due_amount = $row_order['grand_total'] - $paid_amount;
+        echo '<td>' . $due_amount . '</td>';
+        
         $total_due += $due_amount;
         echo '</tr>';
       }
@@ -105,8 +108,8 @@ if ($result_customer->num_rows > 0) {
       echo '<td>' . '</td>';
       echo '<td><strong>Due: ' . $total_due . '</strong></td>';
       echo '<td>' . '</td>';
-      echo '<td>' . '</td>';
-      echo '<td>' . '</td>';
+      echo '<td><strong>' . 'Receivable Due:' . '</strong></td>';
+      echo '<td><strong>' . '<span id="receivable_due"></span>' . '</strong></td>';
       echo '<td>' . '</td>';
       echo '</tr>';
       echo '</table>';
@@ -137,6 +140,9 @@ if ($result_customer->num_rows > 0) {
 
 <?php
 if(isset($_POST['receipt_submit'])) {
+
+$order_choose = implode(',', array_keys($_POST['order_choose']));
+
     $conn = new mysqli('localhost', 'root', '', 'agami');
 // Check connection
 if ($conn->connect_error) {
@@ -146,7 +152,8 @@ if ($conn->connect_error) {
 //echo 'Customer ID is: ' . $_POST['customer_id'] . ' Receipt Amount is: ' . $_POST['receipt_amount'];
 $customer_id = $_POST['customer_id'];
 $receipt_amount = $_POST['receipt_amount'];
-$sql_order = "SELECT * FROM orders WHERE customerID = {$customer_id} ORDER BY orderID ASC";
+$sql_order = "SELECT * FROM orders WHERE orderID IN ({$order_choose}) AND customerID = {$customer_id}  ORDER BY orderID ASC";
+
   $result_order = $conn->query($sql_order);
   if($result_order->num_rows > 0) {
       while($row_order = $result_order->fetch_assoc()) {
@@ -199,6 +206,28 @@ $sql_order = "SELECT * FROM orders WHERE customerID = {$customer_id} ORDER BY or
 <div class="jumbotron text-center" style="margin-bottom:0">
   <p>Copyright 2020 by AgamiSoft. All Rights Reserved.</p>
 </div>
+
+<script>
+//$('input[name^="order_choose"]').each(function() {
+  //  alert($(this).val());
+//});
+
+$(".order_select").change(function() {
+  //alert('test');
+  var show_receivable = Number(0);
+  $('input[name^="order_choose"]').each(function() {
+    //alert($(this).val());
+    if ($(this).prop('checked')==true){ 
+        //do something
+        show_receivable = show_receivable + Number($(this).val())
+    }
+    
+  });
+  $('#receivable_due').html(show_receivable);
+});
+
+
+</script>
 
 </body>
 </html>
