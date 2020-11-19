@@ -125,17 +125,26 @@ $sql_order = "SELECT * FROM orders WHERE customerID = {$customer_id} ORDER BY or
             continue;
         } else {
             $invoice_due = $invoice_total - $paid_amount;
-            $receipt_amount -= $invoice_due;
-            $sql_payment = "INSERT INTO payments (orderID, customerID, paid_amount, payment_status) VALUES (\"{$row_order['orderID']}\", \"{$row_order['customerID']}\", \"$invoice_due\", \"paid\")";
+            if($receipt_amount <= $invoice_due) {
+                $pay_now = $receipt_amount;
+            } else {
+                $pay_now = $invoice_due;
+            }
+            if($receipt_amount <= 0) {
+                continue;
+            }
+            $receipt_amount -= $pay_now;
+            $sql_payment = "INSERT INTO payments (orderID, customerID, paid_amount, payment_status) VALUES (\"{$row_order['orderID']}\", \"{$row_order['customerID']}\", \"$pay_now\", \"paid\")";
             if ($conn->query($sql_payment) === TRUE) {
-                echo "Payment made successfully";
+                $payment_feedback = "Payment made successfully";
               } else {
-                echo "Error: " . $sql . "<br>" . $conn->error;
+                $payment_feedback = "Error: " . $sql . "<br>" . $conn->error;
               }
             //echo 'Pay to Invoice No.: ' . $row_order['invoice_no'] . ' Invoice Due: ' . $invoice_due . '<br />';
         }
       }
     }
+    echo $payment_feedback;
 ?>
 
 
